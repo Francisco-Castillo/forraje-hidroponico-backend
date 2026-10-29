@@ -1,6 +1,6 @@
 # Contrato MQTT: lecturas ambientales
 
-Estado: **backend implementado y probado** (pruebas automatizadas y prueba manual con el Compose local). Firmware: pendiente.
+Estado: **backend implementado y probado** (pruebas automatizadas y prueba manual con el Compose local). Firmware: implementado y compilado, **sin probar** (ver `DHT11/docs/firmware.md`).
 
 ## Tópico
 
@@ -69,6 +69,6 @@ JSON malformado, campo ausente o nulo, tipo erróneo, valor fuera de rango, `dev
 
 ## Pendiente
 
-- El firmware `DHT11` aún no tiene Wi-Fi, MQTT ni sincronización horaria (NTP). El contrato exige un `timestamp` válido y un `messageId` único por lectura, que debe generar el firmware.
+- El firmware `DHT11` ya tiene Wi-Fi, MQTT y NTP (`messageId` = `<id>-<bootId>-<contador>`), pero no se ha probado contra este broker. Publica con **QoS 0** (PubSubClient no soporta QoS 1 al publicar), distinto del QoS 1 del contrato; no hay búfer offline.
 - Un fallo de lectura del DHT11 no publica mensaje (el contrato no define valores nulos).
 - Autorización por nodo en Mosquitto (ACL por tópico): no definida; hoy hay un solo usuario por cliente.

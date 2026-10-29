@@ -2,7 +2,11 @@
 
 Más reciente primero. El detalle completo está en `git log`.
 
-## Documentación
+## Firmware DHT11 con Wi-Fi y MQTT (sin commit en este repositorio)
+
+- Actualizado el estado del firmware en `mqtt-contract.md`, `CLAUDE.md` y `README.md`: compila, no probado, QoS 0.
+
+## Documentación (`469b390`)
 
 - Se agregan README y documentos en `docs/`, el agente `technical-writer`, la skill `update-documentation` y la regla de documentación obligatoria en `CLAUDE.md`.
 
