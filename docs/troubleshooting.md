@@ -40,3 +40,9 @@ El log muestra `Lost connection` o errores de conexión de Paho.
 
 - Docker debe estar en marcha y el usuario debe poder usarlo.
 - La primera ejecución descarga las imágenes `timescale/timescaledb:2.31.0-pg17` y `eclipse-mosquitto:2.1.2-alpine`.
+
+## DBeaver no conecta
+
+- **Connection refused:** `timescaledb` no está arriba o el puerto no coincide. Comprueba `docker compose ps` y usa el `POSTGRES_PORT` de `.env`, no 5432 por defecto.
+- **Autenticación fallida:** la contraseña no coincide con la de la base. Postgres solo aplica `POSTGRES_PASSWORD` al crear el volumen; si la cambiaste después en `.env`, sigue vigente la original.
+- **No aparecen las tablas:** activa *Show all databases* en la conexión o refresca con `F5`.

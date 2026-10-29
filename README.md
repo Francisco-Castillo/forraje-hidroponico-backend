@@ -9,7 +9,7 @@ Backend Spring Boot que recibe por MQTT las mediciones ambientales de un ESP32, 
 | Recepción MQTT (`fvh/+/lecturas`, QoS 1, con usuario y contraseña) | Implementada y probada (pruebas automatizadas y prueba manual con el Compose local) |
 | Validación según [el contrato](docs/mqtt-contract.md) | Implementada y probada |
 | Persistencia en TimescaleDB, con deduplicación | Implementada y probada |
-| Firmware ESP32 que publica por MQTT | Implementado y compilado, sin probar (proyecto `DHT11`; QoS 0) |
+| Firmware ESP32 que publica por MQTT | Implementado y compilado; camino feliz probado en hardware, fallos sin probar (proyecto `DHT11`; QoS 0) |
 | Actuadores, reglas de automatización, API de consulta histórica | No implementados |
 
 ## Arranque rápido

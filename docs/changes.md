@@ -2,6 +2,14 @@
 
 Más reciente primero. El detalle completo está en `git log`.
 
+## Prueba física del firmware (sin commit en este repositorio)
+
+- ESP32 + DHT11 reales publican al Mosquitto local; con el backend en marcha las filas aparecen en `lecturas`. Documentación de estado actualizada y procedimiento registrado en `testing.md`. Fallos aún sin probar.
+
+## Acceso a la base desde DBeaver (sin commit en este repositorio)
+
+- Agregada la sección de conexión en `database.md` y los fallos frecuentes en `troubleshooting.md`.
+
 ## Firmware DHT11 con Wi-Fi y MQTT (sin commit en este repositorio)
 
 - Actualizado el estado del firmware en `mqtt-contract.md`, `CLAUDE.md` y `README.md`: compila, no probado, QoS 0.

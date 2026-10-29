@@ -48,6 +48,22 @@ SELECT version, description, success FROM flyway_schema_history ORDER BY install
 
 Para entrar de forma interactiva: `docker compose exec timescaledb sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`.
 
+## Acceso desde DBeaver (Verificado)
+
+Con los servicios en marcha (`docker compose up -d`, `timescaledb` en `healthy`), en *Database > New Database Connection > PostgreSQL* (no hay conector específico de TimescaleDB):
+
+| Campo | Valor |
+|---|---|
+| Host | `localhost` |
+| Port | `POSTGRES_PORT` de `.env` (en este entorno `5433`; por defecto 5432) |
+| Database | `POSTGRES_DB` |
+| Username | `POSTGRES_USER` |
+| Password | `POSTGRES_PASSWORD` |
+
+Las lecturas están en *Databases > sensores > Schemas > public > Tables > `lecturas`*, pestaña *Data*. La primera vez DBeaver pide descargar el driver de PostgreSQL.
+
+Si falla, ver [troubleshooting](troubleshooting.md#dbeaver-no-conecta). Las consultas de la sección anterior sirven tal cual en el editor SQL de DBeaver.
+
 ## Retención y compresión
 
 No definidas: nadie las ha pedido todavía.

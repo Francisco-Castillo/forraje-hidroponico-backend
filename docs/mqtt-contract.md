@@ -1,6 +1,6 @@
 # Contrato MQTT: lecturas ambientales
 
-Estado: **backend implementado y probado** (pruebas automatizadas y prueba manual con el Compose local). Firmware: implementado y compilado, **sin probar** (ver `DHT11/docs/firmware.md`).
+Estado: **backend implementado y probado** (pruebas automatizadas y prueba manual con el Compose local). Firmware: implementado y compilado; camino feliz probado en hardware el 2026-10-29 (publica y se guarda en la base), casos de fallo sin probar (ver `DHT11/docs/firmware.md`).
 
 ## Tópico
 
