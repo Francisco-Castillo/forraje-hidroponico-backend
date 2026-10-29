@@ -2,6 +2,14 @@
 
 Más reciente primero. El detalle completo está en `git log`.
 
+## API REST de consulta (sin commit en este repositorio)
+
+- Endpoints `GET /api/v1/dispositivos/{deviceId}/lecturas/ultima` y `.../lecturas` (historial con intervalo obligatorio de hasta 7 días, filtros, orden en lista blanca y paginación con máximo de 100), OpenAPI y Swagger UI. Nuevo [api.md](api.md).
+- Lectura con JPA (`LecturaEntity` inmutable + `Specification`); la ingesta MQTT con `JdbcTemplate` no se modificó. Migración `V3` (índice `(nodo, ts DESC)`).
+- Dependencias nuevas: `springdoc-openapi-starter-webmvc-ui` 3.2.0, `mapstruct` 1.6.3 (+ procesador y `lombok-mapstruct-binding` 0.2.0).
+- Las pruebas encontraron un fallo: `Specification.and(null)` lanza excepción en esta versión; se usa `Specification.unrestricted()`.
+- Pruebas: 66 pasan. Probado con el backend real contra la base del Compose: `ultima` e historial filtrado coinciden con el `SELECT` (146 filas).
+
 ## Prueba física del firmware (sin commit en este repositorio)
 
 - ESP32 + DHT11 reales publican al Mosquitto local; con el backend en marcha las filas aparecen en `lecturas`. Documentación de estado actualizada y procedimiento registrado en `testing.md`. Fallos aún sin probar.

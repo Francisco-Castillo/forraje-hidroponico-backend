@@ -10,7 +10,8 @@ Backend Spring Boot que recibe por MQTT las mediciones ambientales de un ESP32, 
 | Validación según [el contrato](docs/mqtt-contract.md) | Implementada y probada |
 | Persistencia en TimescaleDB, con deduplicación | Implementada y probada |
 | Firmware ESP32 que publica por MQTT | Implementado y compilado; camino feliz probado en hardware, fallos sin probar (proyecto `DHT11`; QoS 0) |
-| Actuadores, reglas de automatización, API de consulta histórica | No implementados |
+| API REST de consulta (última medición e historial paginado/filtrable) con OpenAPI y Swagger UI, ver [docs/api.md](docs/api.md) | Implementada y probada (pruebas automatizadas y consulta real contra la base). Sin autenticación |
+| Actuadores, reglas de automatización | No implementados |
 
 ## Arranque rápido
 
@@ -29,6 +30,7 @@ docker compose up -d          # TimescaleDB y Mosquitto
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Componentes y flujo de datos |
 | [docs/development-setup.md](docs/development-setup.md) | Entorno local, servicios, ejecución y verificación de extremo a extremo |
+| [docs/api.md](docs/api.md) | API REST de consulta: endpoints, parámetros, errores y límites |
 | [docs/mqtt-contract.md](docs/mqtt-contract.md) | Tópicos, mensajes, campos, unidades, QoS y ejemplos |
 | [docs/database.md](docs/database.md) | Esquema, migraciones y consultas útiles |
 | [docs/testing.md](docs/testing.md) | Compilación y pruebas |

@@ -102,6 +102,15 @@ Con los servicios y el backend en marcha. **Verificado**.
 
 4. Para ver que el broker rechaza conexiones anónimas, ejecuta el paso 1 sin `-u` ni `-P`: responde `The connection was refused`.
 
+5. Consultar por la API REST (puerto 8080; **Verificado** el 2026-10-29 contra la base del Compose, con resultados iguales a los del `SELECT`):
+
+   ```bash
+   curl -s localhost:8080/api/v1/dispositivos/esp32-fvh-01/lecturas/ultima
+   curl -s "localhost:8080/api/v1/dispositivos/esp32-fvh-01/lecturas?desde=2026-10-29T17:30:00Z&hasta=2026-10-29T17:40:00Z&size=5&sort=ts,desc"
+   ```
+
+   Ajusta las fechas a un intervalo con datos (UTC). Swagger UI: <http://localhost:8080/swagger-ui.html>; especificación: `/v3/api-docs`. La API no tiene autenticación: no la expongas fuera de la red local. Detalle en [api.md](api.md).
+
 ## 7. Pruebas
 
 Ver [testing.md](testing.md).

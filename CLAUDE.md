@@ -8,7 +8,8 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 
 - Java 21, Spring Boot 4.1.2, Maven (`./mvnw`).
 - MQTT: `spring-integration-mqtt` (Paho) contra Eclipse Mosquitto.
-- Persistencia: JDBC con `JdbcTemplate` sobre TimescaleDB (PostgreSQL). Migraciones con Flyway.
+- Persistencia: escritura (ingesta MQTT) con `JdbcTemplate`; lectura (API REST) con JPA, entidad inmutable y `Specification`; sobre TimescaleDB (PostgreSQL). Migraciones con Flyway.
+- API REST: Spring MVC, DTOs + MapStruct, OpenAPI con springdoc (Swagger UI en `/swagger-ui.html`). Controladores y servicios con interfaz e implementación.
 - Infraestructura local: `docker-compose.yml` (`timescaledb`, `mosquitto`), independiente del proceso Spring Boot. Datos en volúmenes con nombre. Variables en `.env` (modelo: `.env.example`).
 - Firmware publicador: proyecto PlatformIO `DHT11` (ESP32).
 
@@ -17,10 +18,13 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 - Mensajes JSON con una lectura completa por mensaje, timestamp ISO-8601 UTC generado por el ESP32, `messageId` único para deduplicar, QoS 1.
 - Broker con usuario y contraseña (`allow_anonymous false`). El archivo `docker/mosquitto/passwd` no se versiona.
 - Contrato de tópicos y campos: `docs/mqtt-contract.md`.
+- La API de consulta es de solo lectura y sin autenticación por ahora (decisión aprobada); contrato en `docs/api.md`.
+- JPA solo para lectura (aprobado 2026-10-29); la ingesta sigue con `JdbcTemplate`.
 
 ## Estado
 
 - Implementado: migraciones `V1` (hypertable `lecturas`) y `V2` (`message_id`), suscripción MQTT a `fvh/+/lecturas`, validación según el contrato y persistencia con `JdbcTemplate` (duplicados ignorados por `message_id`). Código en `com.fvh.sensores.lectura` y `com.fvh.sensores.mqtt`.
+- API de consulta implementada (`com.fvh.sensores.lectura.api` y `.consulta`), migración `V3`, 66 pruebas pasan y probada contra la base real.
 - Pruebas (`./mvnw test`): las de integración usan Testcontainers y requieren Docker en marcha.
 - Probado a mano con el Compose local y credenciales: mensajes por `mosquitto_pub` llegan a la base; el broker rechaza conexiones sin credenciales; los datos sobreviven a `docker compose stop/up` y el backend se reconecta.
 - Parcialmente probado: el firmware ESP32 (publica con QoS 0). Camino feliz verificado en hardware el 2026-10-29 contra el broker y la base; casos de fallo sin probar.

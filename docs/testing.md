@@ -13,13 +13,16 @@ Comandos **Verificados**. Los resultados indicados son los de la última ejecuci
 | Clase | Tipo | Cubre |
 |---|---|---|
 | `LecturaParserTest` | Unitaria (34 casos) | Mensaje válido, campos desconocidos, límites de rango, y los inválidos: JSON malformado, campos ausentes o nulos, tipos erróneos, `timestamp` sin `Z`, con desfase o de reloj sin sincronizar, `deviceId` distinto del tópico, `messageId` vacío o largo, valores fuera de rango y tópicos inválidos. |
+| `LecturaConsultaServiceImplTest` | Unitaria (12 casos) | Validación de `deviceId`, intervalo (inclusive el límite exacto de 7 días), tamaño y número de página, límites de valores y orden (lista blanca, traducción de nombres, rechazo de campos no permitidos). |
+| `LecturaControllerTest` | `@WebMvcTest` (8 casos) | Formato JSON, 404/400 como `ProblemDetail`, parámetros obligatorios, tipos erróneos, `deviceId` inválido y valores por defecto, con el servicio simulado. |
+| `LecturaApiIntegrationTest` | Integración (9 casos) | HTTP contra TimescaleDB real: última medición, intervalo `[desde, hasta)`, filtros, orden, paginación, validaciones y el índice `V3`. |
 | `LecturasIntegrationTest` | Integración (3 casos) | Contenedores reales de TimescaleDB y Mosquitto con Testcontainers: la migración crea la hypertable, un mensaje publicado por MQTT llega a la tabla, y los duplicados y mensajes inválidos no se guardan. |
 
 Las pruebas de integración **requieren Docker en marcha** y descargan las imágenes la primera vez. Usan contenedores propios: no tocan tus servicios ni sus volúmenes, y el broker de pruebas no exige autenticación.
 
 ## Resultado de la última ejecución
 
-37 pruebas, 0 fallos, `BUILD SUCCESS`. Al final Surefire avisa `Surefire is going to kill self fork JVM`: la JVM tarda más de 30 s en cerrarse; no falla ninguna prueba y la causa no está investigada.
+66 pruebas (34 parser + 3 ingesta + 29 de la API), 0 fallos, `BUILD SUCCESS` (2026-10-29). Al final Surefire avisa `Surefire is going to kill self fork JVM`: la JVM tarda más de 30 s en cerrarse; no falla ninguna prueba y la causa no está investigada.
 
 ## Prueba física de extremo a extremo (2026-10-29)
 

@@ -1,6 +1,6 @@
 # Base de datos
 
-TimescaleDB 2.31.0 sobre PostgreSQL 17 (imagen `timescale/timescaledb:2.31.0-pg17`). Acceso con JDBC (`JdbcTemplate`). El esquema lo gestiona Flyway al arrancar el backend.
+TimescaleDB 2.31.0 sobre PostgreSQL 17 (imagen `timescale/timescaledb:2.31.0-pg17`). Escritura con JDBC (`JdbcTemplate`); lectura de la API con JPA (entidad inmutable `LecturaEntity`, `ddl-auto=validate`). El esquema lo gestiona Flyway al arrancar el backend.
 
 ## Esquema
 
@@ -24,6 +24,7 @@ Ruta: `src/main/resources/db/migration/`.
 |---|---|---|
 | 1 | `V1__crear_lecturas.sql` | Extensión `timescaledb`, tabla `lecturas` e hypertable. |
 | 2 | `V2__agregar_message_id.sql` | Agrega `message_id` (las filas previas reciben `migrado-<nodo>-<epoch>`) y cambia la clave primaria. |
+| 3 | `V3__indice_nodo_ts.sql` | Índice `(nodo, ts DESC)` para las consultas de la API. Aditiva. Aplicada con éxito sobre la base del Compose el 2026-10-29. |
 
 Reglas (detalle en la skill `database-migration`): nunca editar una migración ya aplicada; crear un archivo nuevo `V<n>__descripcion.sql`; preferir cambios aditivos; no borrar datos sin autorización.
 

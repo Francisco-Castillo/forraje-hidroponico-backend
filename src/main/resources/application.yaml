@@ -7,6 +7,10 @@ spring:
     url: jdbc:postgresql://localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
 
 sensores:
   mqtt:
@@ -15,3 +19,6 @@ sensores:
     password: ${MQTT_PASSWORD}
     client-id: sensores-backend
     topic: fvh/+/lecturas
+  api:
+    max-rango: 7d
+    max-page-size: 100
