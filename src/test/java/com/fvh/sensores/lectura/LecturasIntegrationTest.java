@@ -67,28 +67,38 @@ class LecturasIntegrationTest {
 		assertThat(n).isEqualTo(1);
 	}
 
+	private static String json(String deviceId, String messageId, String timestamp, String temp) {
+		return "{\"deviceId\":\"" + deviceId + "\",\"messageId\":\"" + messageId + "\",\"timestamp\":\"" + timestamp
+				+ "\",\"measurements\":{\"temperatureC\":" + temp + ",\"relativeHumidityPct\":61.0}}";
+	}
+
 	@Test
 	void persisteLecturaValida() throws Exception {
-		publicar("fvh/bandeja-01/lecturas", "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}");
+		publicar("fvh/bandeja-01/lecturas", json("bandeja-01", "m-1", "2026-10-28T20:00:00Z", "24.5"));
 
 		await().atMost(Duration.ofSeconds(15)).until(() -> contar() == 1);
-		var fila = jdbc.queryForMap("SELECT nodo, temperatura_c, humedad_pct, extract(epoch FROM ts)::bigint AS ts FROM lecturas");
-		assertThat(fila).containsEntry("nodo", "bandeja-01").containsEntry("temperatura_c", 24.5)
-				.containsEntry("humedad_pct", 61.0).containsEntry("ts", 1761694800L);
+		var fila = jdbc.queryForMap(
+				"SELECT message_id, nodo, temperatura_c, humedad_pct, extract(epoch FROM ts)::bigint AS ts FROM lecturas");
+		assertThat(fila).containsEntry("message_id", "m-1").containsEntry("nodo", "bandeja-01")
+				.containsEntry("temperatura_c", 24.5).containsEntry("humedad_pct", 61.0)
+				.containsEntry("ts", 1793217600L);
 	}
 
 	@Test
 	void ignoraDuplicadosYDescartaInvalidos() throws Exception {
-		String valido = "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}";
+		String ts = "2026-10-28T20:00:00Z";
 		publicar("fvh/bandeja-02/lecturas", "no es json");
-		publicar("fvh/bandeja-02/lecturas", "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":80,\"humedad_pct\":61.0}");
-		publicar("fvh/bandeja-02/lecturas", valido);
-		publicar("fvh/bandeja-02/lecturas", valido);
-		// misma marca de tiempo en otro nodo: no es duplicado
-		publicar("fvh/bandeja-03/lecturas", valido);
+		publicar("fvh/bandeja-02/lecturas", json("bandeja-02", "m-1", ts, "80"));
+		publicar("fvh/bandeja-02/lecturas", json("otro-nodo", "m-2", ts, "24.5"));
+		publicar("fvh/bandeja-02/lecturas", json("bandeja-02", "m-3", ts, "24.5"));
+		publicar("fvh/bandeja-02/lecturas", json("bandeja-02", "m-3", ts, "24.5"));
+		// mismo messageId y mismo ts en otro nodo: también es duplicado (el id es único global)
+		publicar("fvh/bandeja-03/lecturas", json("bandeja-03", "m-3", ts, "24.5"));
+		// otro messageId en otro nodo: se guarda
+		publicar("fvh/bandeja-03/lecturas", json("bandeja-03", "m-4", ts, "24.5"));
 
 		await().atMost(Duration.ofSeconds(15)).until(() -> contar() == 2);
-		// los mensajes llegan en orden; margen para que se procese el duplicado
+		// los mensajes llegan en orden; margen para que se procesen los duplicados
 		Thread.sleep(1000);
 		assertThat(contar()).isEqualTo(2);
 	}

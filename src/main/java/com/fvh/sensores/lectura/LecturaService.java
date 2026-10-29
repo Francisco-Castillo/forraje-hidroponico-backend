@@ -26,7 +26,7 @@ public class LecturaService {
 			return;
 		}
 		if (!repository.guardar(lectura)) {
-			log.debug("Lectura duplicada ignorada: {} {}", lectura.nodo(), lectura.ts());
+			log.debug("Lectura duplicada ignorada: {}", lectura.messageId());
 		}
 	}
 }

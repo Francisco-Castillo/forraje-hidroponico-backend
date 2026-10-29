@@ -13,21 +13,33 @@ import tools.jackson.databind.json.JsonMapper;
 
 class LecturaParserTest {
 
-	private static final String TOPIC = "fvh/bandeja-01/lecturas";
+	private static final String TOPIC = "fvh/esp32-fvh-01/lecturas";
+	private static final String VALIDO = mensaje("\"esp32-fvh-01\"", "\"abc-1\"", "\"2026-10-28T20:00:00Z\"", "27.5", "65.0");
 	private final LecturaParser parser = new LecturaParser(JsonMapper.builder().build());
+
+	private static String mensaje(String deviceId, String messageId, String timestamp, String temp, String hum) {
+		return "{\"deviceId\":" + deviceId + ",\"messageId\":" + messageId + ",\"timestamp\":" + timestamp
+				+ ",\"measurements\":{\"temperatureC\":" + temp + ",\"relativeHumidityPct\":" + hum + "}}";
+	}
 
 	@Test
 	void aceptaMensajeValido() {
-		Lectura l = parser.parse(TOPIC, "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}");
+		Lectura l = parser.parse(TOPIC, VALIDO);
 
-		assertThat(l).isEqualTo(new Lectura("bandeja-01", Instant.ofEpochSecond(1761694800L), 24.5, 61.0));
+		assertThat(l).isEqualTo(new Lectura("esp32-fvh-01", "abc-1", Instant.parse("2026-10-28T20:00:00Z"), 27.5, 65.0));
 	}
 
 	@Test
 	void ignoraCamposDesconocidos() {
-		Lectura l = parser.parse(TOPIC, "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24,\"humedad_pct\":61,\"extra\":true}");
+		String conExtra = VALIDO.substring(0, VALIDO.length() - 1) + ",\"extra\":true}";
 
-		assertThat(l.temperaturaC()).isEqualTo(24.0);
+		assertThat(parser.parse(TOPIC, conExtra).temperaturaC()).isEqualTo(27.5);
+	}
+
+	@Test
+	void aceptaFraccionDeSegundoYLimitesDeRango() {
+		assertThat(parser.parse(TOPIC, mensaje("\"esp32-fvh-01\"", "\"a\"", "\"2026-10-28T20:00:00.123Z\"", "0", "20"))).isNotNull();
+		assertThat(parser.parse(TOPIC, mensaje("\"esp32-fvh-01\"", "\"a\"", "\"2026-10-28T20:00:00Z\"", "50", "90"))).isNotNull();
 	}
 
 	@ParameterizedTest
@@ -35,17 +47,33 @@ class LecturaParserTest {
 			"",
 			"no es json",
 			"[1,2]",
-			"{\"v\":1,\"ts\":1761694800,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":null,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":\"24.5\",\"humedad_pct\":61.0}",
-			"{\"v\":2,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}",
-			"{\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":12,\"temperatura_c\":24.5,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800.5,\"temperatura_c\":24.5,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":-0.1,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":50.1,\"humedad_pct\":61.0}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":19.9}",
-			"{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":90.1}"
+			// campos ausentes o nulos
+			"{\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\"}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":null,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":5}",
+			// tipos erróneos
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":\"27.5\",\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":7,\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":1761681600,\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			// messageId vacío o demasiado largo
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"  \",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			// timestamp: sin Z, con desfase, basura, reloj sin sincronizar
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00+00:00\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"ayer\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"1970-01-01T00:00:12Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			// deviceId distinto del tópico
+			"{\"deviceId\":\"otro-nodo\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65}}",
+			// fuera de rango
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":-0.1,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":50.1,\"relativeHumidityPct\":65}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":19.9}}",
+			"{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"a\",\"timestamp\":\"2026-10-28T20:00:00Z\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":90.1}}"
 	})
 	void rechazaPayloadInvalido(String payload) {
 		assertThatThrownBy(() -> parser.parse(TOPIC, payload)).isInstanceOf(LecturaInvalidaException.class);
@@ -53,16 +81,8 @@ class LecturaParserTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = { "fvh/lecturas", "fvh/Bandeja/lecturas", "fvh/a/b/lecturas", "fvh//lecturas",
-			"otro/bandeja-01/lecturas", "fvh/bandeja-01/otra", "fvh/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/lecturas" })
+			"otro/esp32-fvh-01/lecturas", "fvh/esp32-fvh-01/otra", "fvh/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/lecturas" })
 	void rechazaTopicInvalido(String topic) {
-		String ok = "{\"v\":1,\"ts\":1761694800,\"temperatura_c\":24.5,\"humedad_pct\":61.0}";
-
-		assertThatThrownBy(() -> parser.parse(topic, ok)).isInstanceOf(LecturaInvalidaException.class);
-	}
-
-	@Test
-	void aceptaLimitesDeRango() {
-		assertThat(parser.parse(TOPIC, "{\"v\":1,\"ts\":1704067200,\"temperatura_c\":0,\"humedad_pct\":20}")).isNotNull();
-		assertThat(parser.parse(TOPIC, "{\"v\":1,\"ts\":1704067200,\"temperatura_c\":50,\"humedad_pct\":90}")).isNotNull();
+		assertThatThrownBy(() -> parser.parse(topic, VALIDO)).isInstanceOf(LecturaInvalidaException.class);
 	}
 }

@@ -1,6 +1,7 @@
 package com.fvh.sensores.lectura;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,18 +40,49 @@ public class LecturaParser {
 			throw new LecturaInvalidaException("el payload no es un objeto JSON");
 		}
 
-		JsonNode v = campo(json, "v");
-		if (!v.isIntegralNumber() || v.longValue() != 1) {
-			throw new LecturaInvalidaException("versión de esquema no soportada: " + v);
+		String deviceId = texto(json, "deviceId");
+		if (!deviceId.equals(m.group(1))) {
+			throw new LecturaInvalidaException("deviceId '" + deviceId + "' no coincide con el tópico");
 		}
-		JsonNode ts = campo(json, "ts");
-		if (!ts.isIntegralNumber() || !ts.canConvertToLong() || ts.longValue() < TS_MINIMO) {
-			throw new LecturaInvalidaException("ts inválido: " + ts);
+		String messageId = texto(json, "messageId");
+		if (messageId.isBlank() || messageId.length() > 64) {
+			throw new LecturaInvalidaException("messageId vacío o de más de 64 caracteres");
 		}
-		double temperatura = numero(json, "temperatura_c", 0, 50);
-		double humedad = numero(json, "humedad_pct", 20, 90);
+		Instant ts = instante(texto(json, "timestamp"));
 
-		return new Lectura(m.group(1), Instant.ofEpochSecond(ts.longValue()), temperatura, humedad);
+		JsonNode mediciones = campo(json, "measurements");
+		if (!mediciones.isObject()) {
+			throw new LecturaInvalidaException("measurements no es un objeto");
+		}
+		double temperatura = numero(mediciones, "temperatureC", 0, 50);
+		double humedad = numero(mediciones, "relativeHumidityPct", 20, 90);
+
+		return new Lectura(deviceId, messageId, ts, temperatura, humedad);
+	}
+
+	private static String texto(JsonNode json, String nombre) {
+		JsonNode valor = campo(json, nombre);
+		if (!valor.isString()) {
+			throw new LecturaInvalidaException(nombre + " no es texto: " + valor);
+		}
+		return valor.stringValue();
+	}
+
+	private static Instant instante(String valor) {
+		// Solo UTC con sufijo Z (Instant.parse también aceptaría otros desfases).
+		if (!valor.endsWith("Z")) {
+			throw new LecturaInvalidaException("timestamp no está en UTC (sufijo Z): " + valor);
+		}
+		Instant ts;
+		try {
+			ts = Instant.parse(valor);
+		} catch (DateTimeParseException e) {
+			throw new LecturaInvalidaException("timestamp no es ISO-8601: " + valor);
+		}
+		if (ts.getEpochSecond() < TS_MINIMO) {
+			throw new LecturaInvalidaException("timestamp anterior a 2024-01-01 (reloj sin sincronizar): " + valor);
+		}
+		return ts;
 	}
 
 	private static JsonNode campo(JsonNode json, String nombre) {

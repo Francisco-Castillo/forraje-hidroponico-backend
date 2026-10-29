@@ -14,13 +14,13 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 
 ## Decisiones aprobadas
 
-- Mensajes JSON con una lectura completa por mensaje, timestamp generado por el ESP32, QoS 1.
+- Mensajes JSON con una lectura completa por mensaje, timestamp ISO-8601 UTC generado por el ESP32, `messageId` único para deduplicar, QoS 1.
 - Broker con usuario y contraseña (`allow_anonymous false`). El archivo `docker/mosquitto/passwd` no se versiona.
 - Contrato de tópicos y campos: `docs/mqtt-contract.md`.
 
 ## Estado
 
-- Implementado: migración `V1` (hypertable `lecturas`), suscripción MQTT a `fvh/+/lecturas`, validación según el contrato y persistencia con `JdbcTemplate` (duplicados ignorados por `nodo, ts`). Código en `com.fvh.sensores.lectura` y `com.fvh.sensores.mqtt`.
+- Implementado: migraciones `V1` (hypertable `lecturas`) y `V2` (`message_id`), suscripción MQTT a `fvh/+/lecturas`, validación según el contrato y persistencia con `JdbcTemplate` (duplicados ignorados por `message_id`). Código en `com.fvh.sensores.lectura` y `com.fvh.sensores.mqtt`.
 - Pruebas (`./mvnw test`): las de integración usan Testcontainers y requieren Docker en marcha.
 - Probado a mano con el Compose local y credenciales: mensajes por `mosquitto_pub` llegan a la base; el broker rechaza conexiones sin credenciales; los datos sobreviven a `docker compose stop/up` y el backend se reconecta.
 - No probado: el firmware ESP32 (aún no publica por MQTT).

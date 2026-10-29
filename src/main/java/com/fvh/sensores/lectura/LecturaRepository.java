@@ -15,12 +15,12 @@ public class LecturaRepository {
 		this.jdbc = jdbc;
 	}
 
-	/** @return true si se insertó; false si ya existía (nodo, ts), p. ej. un duplicado de QoS 1. */
+	/** @return true si se insertó; false si ya existía (message_id, ts), p. ej. un duplicado de QoS 1. */
 	public boolean guardar(Lectura l) {
 		return jdbc.update("""
-				INSERT INTO lecturas (ts, nodo, temperatura_c, humedad_pct)
-				VALUES (?, ?, ?, ?)
-				ON CONFLICT (nodo, ts) DO NOTHING
-				""", OffsetDateTime.ofInstant(l.ts(), ZoneOffset.UTC), l.nodo(), l.temperaturaC(), l.humedadPct()) == 1;
+				INSERT INTO lecturas (message_id, ts, nodo, temperatura_c, humedad_pct)
+				VALUES (?, ?, ?, ?, ?)
+				ON CONFLICT (message_id, ts) DO NOTHING
+				""", l.messageId(), OffsetDateTime.ofInstant(l.ts(), ZoneOffset.UTC), l.nodo(), l.temperaturaC(), l.humedadPct()) == 1;
 	}
 }
