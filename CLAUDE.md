@@ -22,7 +22,8 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 
 - Implementado: migración `V1` (hypertable `lecturas`), suscripción MQTT a `fvh/+/lecturas`, validación según el contrato y persistencia con `JdbcTemplate` (duplicados ignorados por `nodo, ts`). Código en `com.fvh.sensores.lectura` y `com.fvh.sensores.mqtt`.
 - Pruebas (`./mvnw test`): las de integración usan Testcontainers y requieren Docker en marcha.
-- No probado: ejecución real contra el Docker Compose local con credenciales, y el firmware ESP32 (aún no publica por MQTT).
+- Probado a mano con el Compose local y credenciales: mensajes por `mosquitto_pub` llegan a la base; el broker rechaza conexiones sin credenciales; los datos sobreviven a `docker compose stop/up` y el backend se reconecta.
+- No probado: el firmware ESP32 (aún no publica por MQTT).
 - Limitación conocida: si falla la escritura en la base, el mensaje se pierde (se confirma al broker igualmente; sin reintento).
 
 ## Reglas
@@ -44,4 +45,7 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 1. `cp .env.example .env` y completar los valores.
 2. Crear el archivo de contraseñas de Mosquitto (una vez):
    `docker run --rm -v "$PWD/docker/mosquitto:/work" eclipse-mosquitto:2.1.2-alpine mosquitto_passwd -b -c /work/passwd <usuario> <contraseña>`
-3. `docker compose up -d` / `docker compose stop`.
+   Luego dar el archivo al usuario del contenedor (Docker lo crea como root con modo 600 y Mosquitto no podría leerlo):
+   `docker run --rm -v "$PWD/docker/mosquitto:/work" --entrypoint chown eclipse-mosquitto:2.1.2-alpine mosquitto:mosquitto /work/passwd`
+3. `docker compose up -d` / `docker compose stop`. Si el puerto 5432 está ocupado, definir `POSTGRES_PORT` en `.env`.
+4. `./mvnw spring-boot:run` (lee `.env`).
