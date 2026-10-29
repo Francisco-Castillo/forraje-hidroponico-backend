@@ -16,6 +16,7 @@ public interface LecturaMapper {
 	@Mapping(target = "timestamp", source = "id.ts")
 	@Mapping(target = "temperatureC", source = "temperaturaC")
 	@Mapping(target = "relativeHumidityPct", source = "humedadPct")
+	@Mapping(target = "soilMoistureRaw", source = "humedadSueloRaw")
 	LecturaResponse toResponse(LecturaEntity entity);
 
 	default PaginaResponse<LecturaResponse> toPagina(Page<LecturaEntity> page) {

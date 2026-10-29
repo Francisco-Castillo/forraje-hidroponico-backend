@@ -27,8 +27,9 @@ Estado: **backend implementado y probado** (pruebas automatizadas y prueba manua
 | `measurements` | objeto | sí | Contiene las mediciones siguientes. |
 | `measurements.temperatureC` | número, °C | sí | 0 a 50 (rango del DHT11). |
 | `measurements.relativeHumidityPct` | número, % HR | sí | 20 a 90 (rango del DHT11). |
+| `measurements.soilMoistureRaw` | entero, cuentas del ADC (0–4095) | **no** | Valor crudo del sensor capacitivo de suelo, **sin calibrar: no es un porcentaje**. Ausente o `null` se guarda como nulo; si está presente y no es un entero entre 0 y 4095, el mensaje se descarta. Más seco = valor más alto. |
 
-Campos desconocidos se ignoran. Un cambio incompatible del contrato requiere un tópico o esquema nuevo; no hay campo de versión.
+Los campos desconocidos se ignoran (`soilMoistureRaw` se añadió como campo opcional, compatible con los mensajes anteriores). Un cambio incompatible del contrato requiere un tópico o esquema nuevo; no hay campo de versión.
 
 ### Ejemplo válido
 
@@ -39,7 +40,8 @@ Campos desconocidos se ignoran. Un cambio incompatible del contrato requiere un 
   "timestamp": "2026-10-28T20:00:00Z",
   "measurements": {
     "temperatureC": 27.5,
-    "relativeHumidityPct": 65.0
+    "relativeHumidityPct": 65.0,
+    "soilMoistureRaw": 2310
   }
 }
 ```
@@ -50,6 +52,7 @@ Campos desconocidos se ignoran. Un cambio incompatible del contrato requiere un 
 - `"timestamp": "2026-10-28T20:00:00"` o `"...+00:00"`: no es UTC con `Z`.
 - `"timestamp": "1970-01-01T00:00:12Z"`: reloj sin sincronizar.
 - `"temperatureC": 80`: fuera de rango.
+- `"soilMoistureRaw": "2310"`, `2310.5` o `5000`: tipo erróneo, no entero o fuera de 0–4095.
 - `deviceId` distinto del tópico, `messageId` vacío o `measurements` ausente.
 
 ### Publicar un mensaje de prueba
@@ -70,5 +73,6 @@ JSON malformado, campo ausente o nulo, tipo erróneo, valor fuera de rango, `dev
 ## Pendiente
 
 - El firmware `DHT11` ya tiene Wi-Fi, MQTT y NTP (`messageId` = `<id>-<bootId>-<contador>`), pero no se ha probado contra este broker. Publica con **QoS 0** (PubSubClient no soporta QoS 1 al publicar), distinto del QoS 1 del contrato; no hay búfer offline.
+- `soilMoistureRaw` es un valor crudo: falta la calibración (aire/agua/suelo) para convertirlo en porcentaje; las lecturas preliminares son del firmware `DHT11` y no están concluidas. Si el DHT11 falla, no se publica ni el dato de suelo.
 - Un fallo de lectura del DHT11 no publica mensaje (el contrato no define valores nulos).
 - Autorización por nodo en Mosquitto (ACL por tópico): no definida; hoy hay un solo usuario por cliente.

@@ -10,5 +10,6 @@ public record LecturaResponse(
 		@Schema(example = "esp32-fvh-01-1a2b-000123") String messageId,
 		@Schema(description = "Instante de la medición, UTC", example = "2026-10-28T20:00:00Z") Instant timestamp,
 		@Schema(description = "Temperatura en °C", example = "27.5") double temperatureC,
-		@Schema(description = "Humedad relativa en %", example = "65.0") double relativeHumidityPct) {
+		@Schema(description = "Humedad relativa en %", example = "65.0") double relativeHumidityPct,
+		@Schema(description = "Valor crudo del ADC (0-4095) del sensor de suelo, sin calibrar; no es un porcentaje. Nulo si el mensaje no lo traía", example = "2310", nullable = true) Integer soilMoistureRaw) {
 }

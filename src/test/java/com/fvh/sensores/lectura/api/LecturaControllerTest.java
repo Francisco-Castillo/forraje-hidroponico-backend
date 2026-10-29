@@ -49,6 +49,7 @@ class LecturaControllerTest {
 		when(e.getNodo()).thenReturn("esp32-fvh-01");
 		when(e.getTemperaturaC()).thenReturn(27.5);
 		when(e.getHumedadPct()).thenReturn(65.0);
+		when(e.getHumedadSueloRaw()).thenReturn(2310);
 		return e;
 	}
 
@@ -62,7 +63,8 @@ class LecturaControllerTest {
 				.andExpect(jsonPath("$.messageId").value("m-1"))
 				.andExpect(jsonPath("$.timestamp").value("2026-10-28T20:00:00Z"))
 				.andExpect(jsonPath("$.temperatureC").value(27.5))
-				.andExpect(jsonPath("$.relativeHumidityPct").value(65.0));
+				.andExpect(jsonPath("$.relativeHumidityPct").value(65.0))
+				.andExpect(jsonPath("$.soilMoistureRaw").value(2310));
 	}
 
 	@Test

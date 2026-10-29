@@ -29,8 +29,10 @@ Historial paginado.
 Medición (mismos nombres que el [contrato MQTT](mqtt-contract.md)):
 
 ```json
-{"deviceId":"esp32-fvh-01","messageId":"esp32-fvh-01-603e47dc-219","timestamp":"2026-10-29T17:37:25Z","temperatureC":27.1,"relativeHumidityPct":53.0}
+{"deviceId":"esp32-fvh-01","messageId":"esp32-fvh-01-603e47dc-219","timestamp":"2026-10-29T17:37:25Z","temperatureC":27.1,"relativeHumidityPct":53.0,"soilMoistureRaw":2310}
 ```
+
+`soilMoistureRaw` es el valor crudo del ADC (0–4095) del sensor de suelo, sin calibrar; es `null` en las lecturas que no lo traían. No se puede usar para filtrar ni ordenar.
 
 Historial: `{"content":[...],"page":0,"size":2,"totalElements":146,"totalPages":73}`.
 

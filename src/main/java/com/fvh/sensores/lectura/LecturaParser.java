@@ -57,7 +57,9 @@ public class LecturaParser {
 		double temperatura = numero(mediciones, "temperatureC", 0, 50);
 		double humedad = numero(mediciones, "relativeHumidityPct", 20, 90);
 
-		return new Lectura(deviceId, messageId, ts, temperatura, humedad);
+		Integer sueloRaw = enteroOpcional(mediciones, "soilMoistureRaw", 0, 4095);
+
+		return new Lectura(deviceId, messageId, ts, temperatura, humedad, sueloRaw);
 	}
 
 	private static String texto(JsonNode json, String nombre) {
@@ -91,6 +93,22 @@ public class LecturaParser {
 			throw new LecturaInvalidaException("falta el campo " + nombre);
 		}
 		return valor;
+	}
+
+	/** Campo opcional: ausente o nulo devuelve null; si está presente debe ser un entero dentro del rango. */
+	private static Integer enteroOpcional(JsonNode json, String nombre, int min, int max) {
+		JsonNode valor = json.get(nombre);
+		if (valor == null || valor.isNull()) {
+			return null;
+		}
+		if (!valor.isIntegralNumber() || !valor.canConvertToInt()) {
+			throw new LecturaInvalidaException(nombre + " no es un entero: " + valor);
+		}
+		int i = valor.intValue();
+		if (i < min || i > max) {
+			throw new LecturaInvalidaException(nombre + " fuera de rango [" + min + ", " + max + "]: " + i);
+		}
+		return i;
 	}
 
 	private static double numero(JsonNode json, String nombre, double min, double max) {

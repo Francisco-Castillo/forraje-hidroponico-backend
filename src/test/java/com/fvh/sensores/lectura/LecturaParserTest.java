@@ -26,7 +26,7 @@ class LecturaParserTest {
 	void aceptaMensajeValido() {
 		Lectura l = parser.parse(TOPIC, VALIDO);
 
-		assertThat(l).isEqualTo(new Lectura("esp32-fvh-01", "abc-1", Instant.parse("2026-10-28T20:00:00Z"), 27.5, 65.0));
+		assertThat(l).isEqualTo(new Lectura("esp32-fvh-01", "abc-1", Instant.parse("2026-10-28T20:00:00Z"), 27.5, 65.0, null));
 	}
 
 	@Test
@@ -34,6 +34,28 @@ class LecturaParserTest {
 		String conExtra = VALIDO.substring(0, VALIDO.length() - 1) + ",\"extra\":true}";
 
 		assertThat(parser.parse(TOPIC, conExtra).temperaturaC()).isEqualTo(27.5);
+	}
+
+	private static String conSuelo(String valor) {
+		return VALIDO.replace("\"relativeHumidityPct\":65.0", "\"relativeHumidityPct\":65.0,\"soilMoistureRaw\":" + valor);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "0", "2310", "4095" })
+	void aceptaHumedadDeSueloEnRango(String valor) {
+		assertThat(parser.parse(TOPIC, conSuelo(valor)).humedadSueloRaw()).isEqualTo(Integer.valueOf(valor));
+	}
+
+	@Test
+	void humedadDeSueloAusenteONulaQuedaNula() {
+		assertThat(parser.parse(TOPIC, VALIDO).humedadSueloRaw()).isNull();
+		assertThat(parser.parse(TOPIC, conSuelo("null")).humedadSueloRaw()).isNull();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "\"2310\"", "2310.5", "-1", "4096", "true", "99999999999" })
+	void rechazaHumedadDeSueloInvalida(String valor) {
+		assertThatThrownBy(() -> parser.parse(TOPIC, conSuelo(valor))).isInstanceOf(LecturaInvalidaException.class);
 	}
 
 	@Test

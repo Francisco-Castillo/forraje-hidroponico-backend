@@ -68,9 +68,9 @@ class LecturaApiIntegrationTest {
 		jdbc.update("TRUNCATE lecturas");
 		// api-01: 5 lecturas, una por minuto, temperatura 20..24 y humedad 50..54
 		for (int i = 0; i < 5; i++) {
-			escritor.guardar(new Lectura("api-01", "a-" + i, T0.plusSeconds(60L * i), 20.0 + i, 50.0 + i));
+			escritor.guardar(new Lectura("api-01", "a-" + i, T0.plusSeconds(60L * i), 20.0 + i, 50.0 + i, 3000 + i));
 		}
-		escritor.guardar(new Lectura("api-02", "b-0", T0, 30.0, 70.0));
+		escritor.guardar(new Lectura("api-02", "b-0", T0, 30.0, 70.0, null));
 	}
 
 	private static String rango(String desde, String hasta) {
@@ -91,6 +91,13 @@ class LecturaApiIntegrationTest {
 				.andExpect(jsonPath("$.deviceId").value("api-01")).andExpect(jsonPath("$.messageId").value("a-4"))
 				.andExpect(jsonPath("$.timestamp").value("2026-10-28T20:04:00Z"))
 				.andExpect(jsonPath("$.temperatureC").value(24.0)).andExpect(jsonPath("$.relativeHumidityPct").value(54.0));
+	}
+
+	@Test
+	void ultimaIncluyeHumedadDeSueloYNulaSiNoLaTraia() throws Exception {
+		mvc.perform(get(BASE + "/ultima")).andExpect(jsonPath("$.soilMoistureRaw").value(3004));
+		mvc.perform(get("/api/v1/dispositivos/api-02/lecturas/ultima")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.soilMoistureRaw").doesNotExist());
 	}
 
 	@Test

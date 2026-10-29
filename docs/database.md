@@ -13,6 +13,7 @@ Tabla `lecturas`, hypertable particionada por `ts`:
 | `temperatura_c` | `double precision` | °C |
 | `humedad_pct` | `double precision` | % de humedad relativa |
 | `message_id` | `text` | Identificador de la lectura. |
+| `humedad_suelo_raw` | `integer`, nulo | Valor crudo del ADC (0–4095) del sensor de suelo, sin calibrar. Nulo si el mensaje no lo traía (y en todas las filas anteriores a `V4`). |
 
 Clave primaria: (`message_id`, `ts`). TimescaleDB exige que las claves únicas de una hypertable incluyan la columna de tiempo. Las inserciones usan `ON CONFLICT (message_id, ts) DO NOTHING`.
 
@@ -25,6 +26,7 @@ Ruta: `src/main/resources/db/migration/`.
 | 1 | `V1__crear_lecturas.sql` | Extensión `timescaledb`, tabla `lecturas` e hypertable. |
 | 2 | `V2__agregar_message_id.sql` | Agrega `message_id` (las filas previas reciben `migrado-<nodo>-<epoch>`) y cambia la clave primaria. |
 | 3 | `V3__indice_nodo_ts.sql` | Índice `(nodo, ts DESC)` para las consultas de la API. Aditiva. Aplicada con éxito sobre la base del Compose el 2026-10-29. |
+| 4 | `V4__agregar_humedad_suelo_raw.sql` | Agrega la columna `humedad_suelo_raw integer` (nullable). Aditiva. Aplicada con éxito sobre la base del Compose el 2026-10-29 (las filas anteriores quedan con el campo nulo). |
 
 Reglas (detalle en la skill `database-migration`): nunca editar una migración ya aplicada; crear un archivo nuevo `V<n>__descripcion.sql`; preferir cambios aditivos; no borrar datos sin autorización.
 

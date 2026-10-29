@@ -85,6 +85,22 @@ class LecturasIntegrationTest {
 	}
 
 	@Test
+	void persisteHumedadDeSueloOpcionalYNulaSiNoViene() throws Exception {
+		String ts = "2026-10-28T20:00:00Z";
+		publicar("fvh/bandeja-04/lecturas", json("bandeja-04", "s-1", ts, "24.5").replace("61.0}", "61.0,\"soilMoistureRaw\":3228}"));
+		publicar("fvh/bandeja-04/lecturas", json("bandeja-04", "s-2", ts, "24.5"));
+		publicar("fvh/bandeja-04/lecturas", json("bandeja-04", "s-3", ts, "24.5").replace("61.0}", "61.0,\"soilMoistureRaw\":5000}"));
+
+		await().atMost(Duration.ofSeconds(15)).until(() -> contar() == 2);
+		Thread.sleep(1000);
+		assertThat(contar()).isEqualTo(2);
+		assertThat(jdbc.queryForObject("SELECT humedad_suelo_raw FROM lecturas WHERE message_id = 's-1'", Integer.class))
+				.isEqualTo(3228);
+		assertThat(jdbc.queryForObject("SELECT humedad_suelo_raw FROM lecturas WHERE message_id = 's-2'", Integer.class))
+				.isNull();
+	}
+
+	@Test
 	void ignoraDuplicadosYDescartaInvalidos() throws Exception {
 		String ts = "2026-10-28T20:00:00Z";
 		publicar("fvh/bandeja-02/lecturas", "no es json");

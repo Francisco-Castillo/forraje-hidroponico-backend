@@ -2,6 +2,12 @@
 
 Más reciente primero. El detalle completo está en `git log`.
 
+## Humedad de suelo `soilMoistureRaw` (sin commit en este repositorio)
+
+- Campo opcional en `measurements` (entero 0–4095, valor crudo sin calibrar). Migración `V4` (columna `humedad_suelo_raw`, nullable), parser, `JdbcTemplate`, entidad JPA y `LecturaResponse` (`soilMoistureRaw`). Tópico y campos obligatorios sin cambios; los mensajes antiguos siguen siendo válidos.
+- Pruebas: 78 pasan (12 nuevas). Un primer `./mvnw test` falló con "Unresolved compilation problem" por clases de `target/` compiladas por Eclipse; se resolvió con `./mvnw clean test`.
+- `V4` aplicada a la base del Compose el 2026-10-29. Con el ESP32 real, las filas nuevas guardan `humedad_suelo_raw` (p. ej. 3245) y `GET .../lecturas/ultima` devuelve `soilMoistureRaw`.
+
 ## API REST de consulta (sin commit en este repositorio)
 
 - Endpoints `GET /api/v1/dispositivos/{deviceId}/lecturas/ultima` y `.../lecturas` (historial con intervalo obligatorio de hasta 7 días, filtros, orden en lista blanca y paginación con máximo de 100), OpenAPI y Swagger UI. Nuevo [api.md](api.md).

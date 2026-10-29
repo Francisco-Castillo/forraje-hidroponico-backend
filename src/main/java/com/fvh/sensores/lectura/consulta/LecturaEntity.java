@@ -32,4 +32,7 @@ public class LecturaEntity {
 
 	@Column(name = "humedad_pct", nullable = false)
 	private double humedadPct;
+
+	@Column(name = "humedad_suelo_raw")
+	private Integer humedadSueloRaw;
 }
