@@ -13,6 +13,7 @@ Estado: **backend implementado y probado** (pruebas automatizadas y prueba manua
 ## Entrega
 
 - QoS 1, sin retain.
+- Conexión al broker con usuario y contraseña (`allow_anonymous false`). El `clientId` del backend es `sensores-backend`, con sesión persistente.
 - QoS 1 puede entregar duplicados. Clave de unicidad: `messageId`. Un duplicado se ignora sin error.
   La base la implementa como (`message_id`, `ts`) porque TimescaleDB exige que las claves únicas de una hypertable incluyan el tiempo; un reenvío lleva el mismo `timestamp`, así que equivale a `messageId` único.
 
@@ -50,6 +51,17 @@ Campos desconocidos se ignoran. Un cambio incompatible del contrato requiere un 
 - `"timestamp": "1970-01-01T00:00:12Z"`: reloj sin sincronizar.
 - `"temperatureC": 80`: fuera de rango.
 - `deviceId` distinto del tópico, `messageId` vacío o `measurements` ausente.
+
+### Publicar un mensaje de prueba
+
+Con los servicios y el backend en marcha (comando verificado, explicado en [development-setup.md](development-setup.md#6-verificación-de-extremo-a-extremo)):
+
+```bash
+set -a; . ./.env; set +a
+docker compose exec -T mosquitto mosquitto_pub -h localhost -u "$MQTT_USER" -P "$MQTT_PASSWORD" -q 1 \
+  -t fvh/esp32-fvh-01/lecturas \
+  -m "{\"deviceId\":\"esp32-fvh-01\",\"messageId\":\"prueba-$(date +%s)\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"measurements\":{\"temperatureC\":27.5,\"relativeHumidityPct\":65.0}}"
+```
 
 ## Casos de error del backend
 

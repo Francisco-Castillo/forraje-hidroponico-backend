@@ -34,18 +34,13 @@ Backend Spring Boot que recibe por MQTT las mediciones de un ESP32, las valida y
 4. No inventes versiones, configuraciones ni requisitos: pregunta o verifica.
 5. No ejecutes comandos destructivos (`docker compose down -v`, borrar volúmenes o datos) sin autorización.
 6. Distingue entre código escrito, compilación correcta y pruebas realmente ejecutadas, e informa cada estado por separado.
+7. **Documentación obligatoria.** Toda tarea que modifique código, configuración, esquema de datos, mensajes MQTT, pruebas o comportamiento del sistema incluye revisar la documentación afectada antes de darla por terminada, aplicando la skill `update-documentation` (la documentación no se deja para otra sesión). Al cerrar, informa qué documentos actualizaste o por qué no hacía falta.
 
 ## Agentes y skills
 
-- Agentes (`.claude/agents/`): `backend-architect` (diseña), `spring-boot-developer` (implementa), `mqtt-reviewer` (revisa contratos MQTT).
-- Skills (`.claude/skills/`): `mqtt-message-contract`, `database-migration`, `backend-testing`.
+- Agentes (`.claude/agents/`): `backend-architect` (diseña), `spring-boot-developer` (implementa), `mqtt-reviewer` (revisa contratos MQTT), `technical-writer` (documenta).
+- Skills (`.claude/skills/`): `mqtt-message-contract`, `database-migration`, `backend-testing`, `update-documentation`.
 
 ## Puesta en marcha local
 
-1. `cp .env.example .env` y completar los valores.
-2. Crear el archivo de contraseñas de Mosquitto (una vez):
-   `docker run --rm -v "$PWD/docker/mosquitto:/work" eclipse-mosquitto:2.1.2-alpine mosquitto_passwd -b -c /work/passwd <usuario> <contraseña>`
-   Luego dar el archivo al usuario del contenedor (Docker lo crea como root con modo 600 y Mosquitto no podría leerlo):
-   `docker run --rm -v "$PWD/docker/mosquitto:/work" --entrypoint chown eclipse-mosquitto:2.1.2-alpine mosquitto:mosquitto /work/passwd`
-3. `docker compose up -d` / `docker compose stop`. Si el puerto 5432 está ocupado, definir `POSTGRES_PORT` en `.env`.
-4. `./mvnw spring-boot:run` (lee `.env`).
+Ver [docs/development-setup.md](docs/development-setup.md). Índice de la documentación en [README.md](README.md).
